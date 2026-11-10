@@ -1,0 +1,27 @@
+# Secrets and local data: never publish
+.env
+*.key
+*.pem
+secrets/
+data/
+*.db
+*.sqlite
+
+# Python / Node / IDE
+__pycache__/
+*.pyc
+.venv/
+node_modules/
+.idea/
+.vscode/
+
+fail.txt
+.coverage
+*.egg-info/
+sqlshow-out/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+
+# outputs of local runs (the published ones are in docs/)
+results*/

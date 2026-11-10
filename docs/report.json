@@ -1,0 +1,903 @@
+{
+ "environment": {
+  "sqlshow": "1.0.0",
+  "python": "3.14.10",
+  "psycopg": "3.3.8",
+  "system": "Linux x86_64",
+  "server": {
+   "server_version": "18.6 (Debian 18.6-1.pgdg13+2)",
+   "shared_buffers": "512MB",
+   "work_mem": "4MB",
+   "effective_cache_size": "2GB",
+   "random_page_cost": "1.1",
+   "max_parallel_workers_per_gather": "2",
+   "jit": "off",
+   "server_encoding": "UTF8",
+   "collation": "en_US.utf8"
+  },
+  "scale": 1.0,
+  "seed": 1,
+  "repeat": 5,
+  "rows": {
+   "categories": 85,
+   "customers": 20000,
+   "events": 550513,
+   "order_items": 437300,
+   "orders": 200000,
+   "products": 2000
+  },
+  "table_bytes": {
+   "categories": 65536,
+   "customers": 1794048,
+   "events": 63553536,
+   "order_items": 32817152,
+   "orders": 15433728,
+   "products": 229376
+  },
+  "command": "evaluate --repeat 5 --out /out",
+  "seconds": 44.6
+ },
+ "queries": [
+  {
+   "id": "q01",
+   "name": "q01_top_products_per_category",
+   "title": "Top 3 products per category",
+   "question": "Which three products earn the most in each leaf category?",
+   "technique": "ROW_NUMBER() over a partition, filtered in an outer query",
+   "rows": 180,
+   "result_sha256": "3ff29678bb00ecb73006be9ccd1f2e5960dd316ae4b139fa18f15246c72cd487",
+   "median_ms": 325.453,
+   "min_ms": 298.475,
+   "max_ms": 331.315,
+   "planning_ms": 0.34,
+   "root_node": "Incremental Sort",
+   "nodes": [
+    "Incremental Sort",
+    "Subquery Scan",
+    "WindowAgg",
+    "Sort",
+    "Aggregate",
+    "Hash Join",
+    "Hash Join",
+    "Seq Scan",
+    "Hash",
+    "Seq Scan",
+    "Hash",
+    "Seq Scan"
+   ],
+   "shared_hit": 4143,
+   "shared_read": 0
+  },
+  {
+   "id": "q02",
+   "name": "q02_monthly_revenue_growth",
+   "title": "Monthly revenue, growth and moving average",
+   "question": "How does revenue move month over month, and what is the trend once the noise is smoothed?",
+   "technique": "LAG, a named WINDOW, and a ROWS frame for a moving average",
+   "rows": 36,
+   "result_sha256": "21b3e97c6e629eb198867f63639a53c82d12ae958974694b4fbb9d65397dfdcb",
+   "median_ms": 341.74,
+   "min_ms": 331.967,
+   "max_ms": 357.41,
+   "planning_ms": 0.289,
+   "root_node": "WindowAgg",
+   "nodes": [
+    "WindowAgg",
+    "WindowAgg",
+    "Sort",
+    "Aggregate",
+    "Hash Join",
+    "Hash Join",
+    "Seq Scan",
+    "Hash",
+    "Seq Scan",
+    "Hash",
+    "Seq Scan"
+   ],
+   "shared_hit": 4143,
+   "shared_read": 0
+  },
+  {
+   "id": "q03",
+   "name": "q03_cohort_retention",
+   "title": "Cohort retention",
+   "question": "Of the customers who made their first purchase in a month, how many were still buying 0, 1, ... 11 months later?",
+   "technique": "CTEs, DISTINCT, month arithmetic, and a percentage of a group total",
+   "rows": 366,
+   "result_sha256": "b3ef3d1dabd4fae195535bbdf55d412012cb7f25018f4c7508c6274f852ee7aa",
+   "median_ms": 300.312,
+   "min_ms": 297.336,
+   "max_ms": 308.448,
+   "planning_ms": 0.18,
+   "root_node": "Aggregate",
+   "nodes": [
+    "Aggregate",
+    "Aggregate",
+    "Seq Scan",
+    "Sort",
+    "Hash Join",
+    "Aggregate",
+    "Seq Scan",
+    "Hash",
+    "Hash Join",
+    "CTE Scan",
+    "Hash",
+    "Subquery Scan",
+    "Aggregate",
+    "CTE Scan"
+   ],
+   "shared_hit": 2656,
+   "shared_read": 0
+  },
+  {
+   "id": "q04",
+   "name": "q04_rfm_segments",
+   "title": "RFM customer segments",
+   "question": "Who are the best customers, and who is slipping away?",
+   "technique": "NTILE scores, a CASE over the scores, aggregation of the segments",
+   "rows": 6,
+   "result_sha256": "2afba29bad7628414aa6d9b316a66a9617d942a3afb97f2373cd0664b8bcbf6d",
+   "median_ms": 452.443,
+   "min_ms": 440.917,
+   "max_ms": 460.063,
+   "planning_ms": 0.32,
+   "root_node": "Sort",
+   "nodes": [
+    "Sort",
+    "Aggregate",
+    "Subquery Scan",
+    "WindowAgg",
+    "Sort",
+    "WindowAgg",
+    "Sort",
+    "WindowAgg",
+    "Sort",
+    "Subquery Scan",
+    "Aggregate",
+    "Sort",
+    "Hash Join",
+    "Hash Join",
+    "Seq Scan",
+    "Hash",
+    "Seq Scan",
+    "Hash",
+    "Seq Scan"
+   ],
+   "shared_hit": 4143,
+   "shared_read": 0
+  },
+  {
+   "id": "q05",
+   "name": "q05_pareto_abc",
+   "title": "Pareto and ABC classes",
+   "question": "How concentrated is revenue? Which products make the first 80%, the next 15%, the rest?",
+   "technique": "a running SUM and a grand-total SUM over the same query",
+   "rows": 2000,
+   "result_sha256": "1578912590150305060f767df58d6be0d620622fe1b07f928248123e0b671f0d",
+   "median_ms": 160.45,
+   "min_ms": 157.333,
+   "max_ms": 176.5,
+   "planning_ms": 0.281,
+   "root_node": "Subquery Scan",
+   "nodes": [
+    "Subquery Scan",
+    "WindowAgg",
+    "WindowAgg",
+    "Sort",
+    "Aggregate",
+    "Gather",
+    "Aggregate",
+    "Hash Join",
+    "Hash Join",
+    "Seq Scan",
+    "Hash",
+    "Seq Scan",
+    "Hash",
+    "Seq Scan"
+   ],
+   "shared_hit": 4161,
+   "shared_read": 0
+  },
+  {
+   "id": "q06",
+   "name": "q06_category_tree_revenue",
+   "title": "Revenue up a category tree",
+   "question": "What does each category earn, counting everything below it?",
+   "technique": "two recursive CTEs (a path and a closure) over a self-referencing table",
+   "rows": 85,
+   "result_sha256": "0fb44ff03380ef3ba8176727063d7cf70e759651648d0b1c29336d15fd81625e",
+   "median_ms": 151.065,
+   "min_ms": 144.036,
+   "max_ms": 161.316,
+   "planning_ms": 0.344,
+   "root_node": "Sort",
+   "nodes": [
+    "Sort",
+    "Recursive Union",
+    "Seq Scan",
+    "Hash Join",
+    "Seq Scan",
+    "Hash",
+    "WorkTable Scan",
+    "Recursive Union",
+    "Seq Scan",
+    "Hash Join",
+    "WorkTable Scan",
+    "Hash",
+    "Seq Scan",
+    "Aggregate",
+    "Gather Merge",
+    "Sort",
+    "Aggregate",
+    "Hash Join",
+    "Hash Join",
+    "Seq Scan",
+    "Hash",
+    "Seq Scan",
+    "Hash",
+    "Seq Scan",
+    "Aggregate",
+    "Merge Join",
+    "Merge Join",
+    "Sort",
+    "CTE Scan",
+    "Materialize",
+    "CTE Scan",
+    "Sort",
+    "Hash Join",
+    "CTE Scan",
+    "Hash",
+    "CTE Scan"
+   ],
+   "shared_hit": 4174,
+   "shared_read": 0
+  },
+  {
+   "id": "q07",
+   "name": "q07_sessions",
+   "title": "Sessions from a click stream",
+   "question": "Group each customer's events into visits; which visits were the longest?",
+   "technique": "LAG to find gaps, a running SUM of flags to number the groups",
+   "rows": 20,
+   "result_sha256": "07c5217ae3b90ef1ccfe7c53cdb1e13521a47fc1db15ab6fcae7f0ef7de05f97",
+   "median_ms": 665.232,
+   "min_ms": 624.288,
+   "max_ms": 693.682,
+   "planning_ms": 0.11,
+   "root_node": "Limit",
+   "nodes": [
+    "Limit",
+    "Sort",
+    "Aggregate",
+    "WindowAgg",
+    "WindowAgg",
+    "Sort",
+    "Seq Scan"
+   ],
+   "shared_hit": 6240,
+   "shared_read": 0
+  },
+  {
+   "id": "q08",
+   "name": "q08_longest_streaks",
+   "title": "Longest streaks of active days",
+   "question": "Which customers were active on the most consecutive days?",
+   "technique": "gaps and islands (date minus ROW_NUMBER is constant inside a run of consecutive days)",
+   "rows": 10,
+   "result_sha256": "ea5a39d3b96719c70c2e56e4386e6a741cecf4bd013823c9102a6fca2bc74ad5",
+   "median_ms": 291.911,
+   "min_ms": 268.041,
+   "max_ms": 341.747,
+   "planning_ms": 0.168,
+   "root_node": "Limit",
+   "nodes": [
+    "Limit",
+    "Sort",
+    "Subquery Scan",
+    "WindowAgg",
+    "Sort",
+    "Subquery Scan",
+    "Aggregate",
+    "WindowAgg",
+    "Unique",
+    "Sort",
+    "Seq Scan"
+   ],
+   "shared_hit": 6240,
+   "shared_read": 0
+  },
+  {
+   "id": "q09",
+   "name": "q09_order_value_percentiles",
+   "title": "Order value percentiles by country",
+   "question": "What is a typical order, and a large one, in each country? How many orders are refunded?",
+   "technique": "ordered-set aggregates (PERCENTILE_CONT) and FILTER",
+   "rows": 8,
+   "result_sha256": "f28c441a011435135957479a851294b9fec706764753974aaca96554aea213ce",
+   "median_ms": 422.047,
+   "min_ms": 412.161,
+   "max_ms": 459.483,
+   "planning_ms": 0.263,
+   "root_node": "Sort",
+   "nodes": [
+    "Sort",
+    "Aggregate",
+    "Sort",
+    "Hash Join",
+    "Aggregate",
+    "Merge Join",
+    "Index Scan using orders_pkey",
+    "Index Scan using order_items_pkey",
+    "Hash",
+    "Seq Scan"
+   ],
+   "shared_hit": 5981,
+   "shared_read": 0
+  },
+  {
+   "id": "q10",
+   "name": "q10_copurchase_pairs",
+   "title": "Products bought together",
+   "question": "Which pairs of products appear in the same order most often?",
+   "technique": "a self-join with an inequality, so each pair is counted once",
+   "rows": 15,
+   "result_sha256": "2b3881e4abe3df39b2718e5d0ea006340a283a4c6b618313ff188104e167a21c",
+   "median_ms": 671.951,
+   "min_ms": 634.648,
+   "max_ms": 722.725,
+   "planning_ms": 0.396,
+   "root_node": "Limit",
+   "nodes": [
+    "Limit",
+    "Aggregate",
+    "Gather",
+    "Aggregate",
+    "Seq Scan",
+    "Sort",
+    "Aggregate",
+    "Merge Join",
+    "Merge Join",
+    "Index Scan using order_items_pkey",
+    "Index Scan using orders_pkey",
+    "Materialize",
+    "Index Scan using order_items_pkey"
+   ],
+   "shared_hit": 11136,
+   "shared_read": 0
+  },
+  {
+   "id": "q11",
+   "name": "q11_last_orders_lateral",
+   "title": "Last three orders of the top customers",
+   "question": "For the five biggest customers, what were their three most recent orders?",
+   "technique": "CROSS JOIN LATERAL, the \"top N per group\" that can use an index",
+   "rows": 15,
+   "result_sha256": "b9f30e6155dac4a2f08bc53f0a05e6ed8f196ec5ce8a04d90a5e8f228495140a",
+   "median_ms": 364.361,
+   "min_ms": 335.938,
+   "max_ms": 473.137,
+   "planning_ms": 0.426,
+   "root_node": "Incremental Sort",
+   "nodes": [
+    "Incremental Sort",
+    "Nested Loop",
+    "Limit",
+    "Sort",
+    "Aggregate",
+    "Gather",
+    "Aggregate",
+    "Hash Join",
+    "Hash Join",
+    "Seq Scan",
+    "Hash",
+    "Seq Scan",
+    "Hash",
+    "Seq Scan",
+    "Limit",
+    "WindowAgg",
+    "Sort",
+    "Aggregate",
+    "Sort",
+    "Nested Loop",
+    "Seq Scan",
+    "Index Scan using order_items_pkey"
+   ],
+   "shared_hit": 69124,
+   "shared_read": 0
+  },
+  {
+   "id": "q12",
+   "name": "q12_rollup_report",
+   "title": "Revenue by year and country with subtotals",
+   "question": "How do I get the detail, the total of each year and the grand total in a single query?",
+   "technique": "GROUP BY ROLLUP and GROUPING()",
+   "rows": 28,
+   "result_sha256": "7b30a636e3a38f70fa653eacb3bfc1599fa0e3f4a6a5940361576d839be7201a",
+   "median_ms": 601.236,
+   "min_ms": 583.058,
+   "max_ms": 625.662,
+   "planning_ms": 0.388,
+   "root_node": "Sort",
+   "nodes": [
+    "Sort",
+    "Aggregate",
+    "Sort",
+    "Hash Join",
+    "Hash Join",
+    "Merge Join",
+    "Index Scan using order_items_pkey",
+    "Index Scan using orders_pkey",
+    "Hash",
+    "Seq Scan",
+    "Hash",
+    "Seq Scan"
+   ],
+   "shared_hit": 5996,
+   "shared_read": 0
+  },
+  {
+   "id": "q13",
+   "name": "q13_first_purchase_category",
+   "title": "Category of the first purchase",
+   "question": "Which categories bring customers in?",
+   "technique": "DISTINCT ON, the first row of each group",
+   "rows": 60,
+   "result_sha256": "9fed3d743960fcdf126c0ece0c1819d8d58156ed3d8f13cf6c4835f5bafa471a",
+   "median_ms": 367.265,
+   "min_ms": 349.537,
+   "max_ms": 377.846,
+   "planning_ms": 0.249,
+   "root_node": "Sort",
+   "nodes": [
+    "Sort",
+    "Aggregate",
+    "Hash Join",
+    "Unique",
+    "Sort",
+    "Hash Join",
+    "Hash Join",
+    "Seq Scan",
+    "Hash",
+    "Seq Scan",
+    "Hash",
+    "Seq Scan",
+    "Hash",
+    "Seq Scan"
+   ],
+   "shared_hit": 4158,
+   "shared_read": 0
+  }
+ ],
+ "experiments": [
+  {
+   "id": "e01",
+   "title": "Index on a foreign key",
+   "why": "PostgreSQL does not index a foreign key by itself. Without an index, finding one customer's orders reads the whole table.",
+   "query": "SELECT order_id, ordered_at, status FROM orders WHERE customer_id = 13888",
+   "rows": 180,
+   "baseline_label": "no index",
+   "candidate_label": "btree on customer_id",
+   "ddl": [
+    "CREATE INDEX idx_orders_customer ON orders (customer_id)"
+   ],
+   "baseline": {
+    "median_ms": 4.039,
+    "min_ms": 3.96,
+    "max_ms": 6.259,
+    "planning_ms": 0.037,
+    "root_node": "Seq Scan",
+    "nodes": [
+     "Seq Scan"
+    ],
+    "shared_hit": 1291,
+    "shared_read": 0
+   },
+   "candidate": {
+    "median_ms": 0.116,
+    "min_ms": 0.075,
+    "max_ms": 0.129,
+    "planning_ms": 0.027,
+    "root_node": "Bitmap Heap Scan",
+    "nodes": [
+     "Bitmap Heap Scan",
+     "Bitmap Index Scan using idx_orders_customer"
+    ],
+    "shared_hit": 175,
+    "shared_read": 0
+   },
+   "speedup": 34.82,
+   "index_build_ms": 81.3,
+   "index_bytes": 1859584
+  },
+  {
+   "id": "e02",
+   "title": "B-tree on a time range",
+   "why": "A week of orders out of three years: a range condition on a column that has no index.",
+   "query": "SELECT date_trunc('day', ordered_at) AS day, count(*) FROM orders WHERE ordered_at >= '2025-06-01' AND ordered_at < '2025-06-08' GROUP BY 1 ORDER BY 1",
+   "rows": 7,
+   "baseline_label": "no index",
+   "candidate_label": "btree on ordered_at",
+   "ddl": [
+    "CREATE INDEX idx_orders_time ON orders (ordered_at)"
+   ],
+   "baseline": {
+    "median_ms": 6.899,
+    "min_ms": 5.807,
+    "max_ms": 9.657,
+    "planning_ms": 0.066,
+    "root_node": "Aggregate",
+    "nodes": [
+     "Aggregate",
+     "Gather Merge",
+     "Sort",
+     "Seq Scan"
+    ],
+    "shared_hit": 1329,
+    "shared_read": 0
+   },
+   "candidate": {
+    "median_ms": 0.456,
+    "min_ms": 0.442,
+    "max_ms": 0.585,
+    "planning_ms": 0.043,
+    "root_node": "Aggregate",
+    "nodes": [
+     "Aggregate",
+     "Sort",
+     "Index Only Scan using idx_orders_time"
+    ],
+    "shared_hit": 10,
+    "shared_read": 0
+   },
+   "speedup": 15.13,
+   "index_build_ms": 55.2,
+   "index_bytes": 4513792
+  },
+  {
+   "id": "e03",
+   "title": "BRIN on a time range",
+   "why": "The same query as e02. Order ids follow time, so the rows of a week are stored together, and a BRIN index (one entry per block range) can find them at a tiny fraction of the size of a B-tree.",
+   "query": "SELECT date_trunc('day', ordered_at) AS day, count(*) FROM orders WHERE ordered_at >= '2025-06-01' AND ordered_at < '2025-06-08' GROUP BY 1 ORDER BY 1",
+   "rows": 7,
+   "baseline_label": "no index",
+   "candidate_label": "BRIN on ordered_at",
+   "ddl": [
+    "CREATE INDEX idx_orders_time_brin ON orders USING brin (ordered_at)"
+   ],
+   "baseline": {
+    "median_ms": 6.436,
+    "min_ms": 5.766,
+    "max_ms": 8.011,
+    "planning_ms": 0.086,
+    "root_node": "Aggregate",
+    "nodes": [
+     "Aggregate",
+     "Gather Merge",
+     "Sort",
+     "Seq Scan"
+    ],
+    "shared_hit": 1329,
+    "shared_read": 0
+   },
+   "candidate": {
+    "median_ms": 1.249,
+    "min_ms": 1.162,
+    "max_ms": 1.506,
+    "planning_ms": 0.037,
+    "root_node": "Aggregate",
+    "nodes": [
+     "Aggregate",
+     "Sort",
+     "Bitmap Heap Scan",
+     "Bitmap Index Scan using idx_orders_time_brin"
+    ],
+    "shared_hit": 130,
+    "shared_read": 0
+   },
+   "speedup": 5.15,
+   "index_build_ms": 17.2,
+   "index_bytes": 24576
+  },
+  {
+   "id": "e04",
+   "title": "Composite index that also gives the order",
+   "why": "The last five orders of a customer. An index on customer_id finds the rows but they still have to be sorted; an index on (customer_id, ordered_at DESC) returns them already in order and stops after five.",
+   "query": "SELECT order_id, ordered_at FROM orders WHERE customer_id = 13888 ORDER BY ordered_at DESC LIMIT 5",
+   "rows": 5,
+   "baseline_label": "btree on customer_id",
+   "candidate_label": "btree on (customer_id, ordered_at DESC)",
+   "ddl": [
+    "DROP INDEX idx_orders_customer",
+    "CREATE INDEX idx_orders_customer_time ON orders (customer_id, ordered_at DESC)"
+   ],
+   "baseline": {
+    "median_ms": 0.087,
+    "min_ms": 0.081,
+    "max_ms": 0.17,
+    "planning_ms": 0.021,
+    "root_node": "Limit",
+    "nodes": [
+     "Limit",
+     "Sort",
+     "Bitmap Heap Scan",
+     "Bitmap Index Scan using idx_orders_customer"
+    ],
+    "shared_hit": 175,
+    "shared_read": 0
+   },
+   "candidate": {
+    "median_ms": 0.017,
+    "min_ms": 0.014,
+    "max_ms": 0.018,
+    "planning_ms": 0.027,
+    "root_node": "Limit",
+    "nodes": [
+     "Limit",
+     "Index Scan using idx_orders_customer_time"
+    ],
+    "shared_hit": 7,
+    "shared_read": 0
+   },
+   "speedup": 5.12,
+   "index_build_ms": 72.7,
+   "index_bytes": 6332416
+  },
+  {
+   "id": "e05",
+   "title": "Covering index and an index-only scan",
+   "why": "Counting the paid orders of a range of customers. If the index also holds the status column (INCLUDE), the table is not read at all, as long as the visibility map is up to date (hence the VACUUM).",
+   "query": "SELECT count(*) FROM orders WHERE customer_id BETWEEN 5000 AND 5400 AND status = 'paid'",
+   "rows": 1,
+   "baseline_label": "btree on customer_id",
+   "candidate_label": "btree on customer_id INCLUDE (status)",
+   "ddl": [
+    "DROP INDEX idx_orders_customer",
+    "CREATE INDEX idx_orders_customer_status ON orders (customer_id) INCLUDE (status)"
+   ],
+   "baseline": {
+    "median_ms": 0.91,
+    "min_ms": 0.826,
+    "max_ms": 1.145,
+    "planning_ms": 0.034,
+    "root_node": "Aggregate",
+    "nodes": [
+     "Aggregate",
+     "Bitmap Heap Scan",
+     "Bitmap Index Scan using idx_orders_customer"
+    ],
+    "shared_hit": 1233,
+    "shared_read": 0
+   },
+   "candidate": {
+    "median_ms": 0.34,
+    "min_ms": 0.329,
+    "max_ms": 0.37,
+    "planning_ms": 0.03,
+    "root_node": "Aggregate",
+    "nodes": [
+     "Aggregate",
+     "Index Only Scan using idx_orders_customer_status"
+    ],
+    "shared_hit": 18,
+    "shared_read": 0
+   },
+   "speedup": 2.68,
+   "index_build_ms": 96.3,
+   "index_bytes": 6332416
+  },
+  {
+   "id": "e06",
+   "title": "Partial index",
+   "why": "Pending orders are a tiny part of the table and are looked up constantly. An index that holds only those rows is small and cheap to keep.",
+   "query": "SELECT order_id, customer_id FROM orders WHERE status = 'pending'",
+   "rows": 818,
+   "baseline_label": "no index",
+   "candidate_label": "partial btree WHERE status = 'pending'",
+   "ddl": [
+    "CREATE INDEX idx_orders_pending ON orders (customer_id) WHERE status = 'pending'"
+   ],
+   "baseline": {
+    "median_ms": 7.592,
+    "min_ms": 6.576,
+    "max_ms": 9.418,
+    "planning_ms": 0.053,
+    "root_node": "Seq Scan",
+    "nodes": [
+     "Seq Scan"
+    ],
+    "shared_hit": 1291,
+    "shared_read": 0
+   },
+   "candidate": {
+    "median_ms": 0.11,
+    "min_ms": 0.101,
+    "max_ms": 0.147,
+    "planning_ms": 0.023,
+    "root_node": "Bitmap Heap Scan",
+    "nodes": [
+     "Bitmap Heap Scan",
+     "Bitmap Index Scan using idx_orders_pending"
+    ],
+    "shared_hit": 31,
+    "shared_read": 0
+   },
+   "speedup": 69.02,
+   "index_build_ms": 20.6,
+   "index_bytes": 40960
+  },
+  {
+   "id": "e07",
+   "title": "Expression index",
+   "why": "Case-insensitive lookup by e-mail. A plain index on email cannot serve lower(email) = ...; an index on the expression can.",
+   "query": "SELECT customer_id, country FROM customers WHERE lower(email) = 'user10000@example.com'",
+   "rows": 1,
+   "baseline_label": "no index",
+   "candidate_label": "btree on lower(email)",
+   "ddl": [
+    "CREATE INDEX idx_customers_email ON customers (lower(email))"
+   ],
+   "baseline": {
+    "median_ms": 3.509,
+    "min_ms": 3.011,
+    "max_ms": 4.426,
+    "planning_ms": 0.018,
+    "root_node": "Seq Scan",
+    "nodes": [
+     "Seq Scan"
+    ],
+    "shared_hit": 157,
+    "shared_read": 0
+   },
+   "candidate": {
+    "median_ms": 0.012,
+    "min_ms": 0.007,
+    "max_ms": 0.018,
+    "planning_ms": 0.021,
+    "root_node": "Index Scan",
+    "nodes": [
+     "Index Scan using idx_customers_email"
+    ],
+    "shared_hit": 3,
+    "shared_read": 0
+   },
+   "speedup": 292.42,
+   "index_build_ms": 45.8,
+   "index_bytes": 827392
+  },
+  {
+   "id": "e08",
+   "title": "GIN on a JSONB column",
+   "why": "Events of one campaign, found by containment (@>) on a JSONB document.",
+   "query": "SELECT count(*) FROM events WHERE props @> '{\"campaign\": \"c07\"}'::jsonb",
+   "rows": 1,
+   "baseline_label": "no index",
+   "candidate_label": "GIN (jsonb_path_ops) on props",
+   "ddl": [
+    "CREATE INDEX idx_events_props ON events USING gin (props jsonb_path_ops)"
+   ],
+   "baseline": {
+    "median_ms": 37.649,
+    "min_ms": 32.196,
+    "max_ms": 39.491,
+    "planning_ms": 0.059,
+    "root_node": "Aggregate",
+    "nodes": [
+     "Aggregate",
+     "Gather",
+     "Aggregate",
+     "Seq Scan"
+    ],
+    "shared_hit": 6225,
+    "shared_read": 0
+   },
+   "candidate": {
+    "median_ms": 2.165,
+    "min_ms": 1.445,
+    "max_ms": 3.619,
+    "planning_ms": 0.038,
+    "root_node": "Aggregate",
+    "nodes": [
+     "Aggregate",
+     "Bitmap Heap Scan",
+     "Bitmap Index Scan using idx_events_props"
+    ],
+    "shared_hit": 2248,
+    "shared_read": 0
+   },
+   "speedup": 17.39,
+   "index_build_ms": 99.6,
+   "index_bytes": 1064960
+  },
+  {
+   "id": "e09",
+   "title": "Index on the foreign key of a large table",
+   "why": "The revenue of one product, from the order lines (the biggest table of the shop).",
+   "query": "SELECT sum(quantity * unit_price) AS revenue, count(*) AS lines FROM order_items WHERE product_id = 513",
+   "rows": 1,
+   "baseline_label": "no index",
+   "candidate_label": "btree on product_id",
+   "ddl": [
+    "CREATE INDEX idx_items_product ON order_items (product_id)"
+   ],
+   "baseline": {
+    "median_ms": 10.745,
+    "min_ms": 9.058,
+    "max_ms": 13.653,
+    "planning_ms": 0.058,
+    "root_node": "Aggregate",
+    "nodes": [
+     "Aggregate",
+     "Gather",
+     "Aggregate",
+     "Seq Scan"
+    ],
+    "shared_hit": 2786,
+    "shared_read": 0
+   },
+   "candidate": {
+    "median_ms": 0.907,
+    "min_ms": 0.877,
+    "max_ms": 1.285,
+    "planning_ms": 0.026,
+    "root_node": "Aggregate",
+    "nodes": [
+     "Aggregate",
+     "Bitmap Heap Scan",
+     "Bitmap Index Scan using idx_items_product"
+    ],
+    "shared_hit": 1377,
+    "shared_read": 0
+   },
+   "speedup": 11.85,
+   "index_build_ms": 112.7,
+   "index_bytes": 3112960
+  },
+  {
+   "id": "e10",
+   "title": "An index that barely helps",
+   "why": "Customers with no orders, as a NOT EXISTS. The planner has to read the customer of every order either way, so an index on customer_id can only make that read cheaper, not skip it: the gain is small, unlike the other experiments.",
+   "query": "SELECT count(*) FROM customers AS c WHERE NOT EXISTS (SELECT 1 FROM orders AS o WHERE o.customer_id = c.customer_id)",
+   "rows": 1,
+   "baseline_label": "no index",
+   "candidate_label": "btree on customer_id",
+   "ddl": [
+    "CREATE INDEX idx_orders_customer ON orders (customer_id)"
+   ],
+   "baseline": {
+    "median_ms": 30.596,
+    "min_ms": 27.614,
+    "max_ms": 35.757,
+    "planning_ms": 0.147,
+    "root_node": "Aggregate",
+    "nodes": [
+     "Aggregate",
+     "Hash Join",
+     "Seq Scan",
+     "Hash",
+     "Seq Scan"
+    ],
+    "shared_hit": 1448,
+    "shared_read": 0
+   },
+   "candidate": {
+    "median_ms": 22.752,
+    "min_ms": 22.312,
+    "max_ms": 24.325,
+    "planning_ms": 0.144,
+    "root_node": "Aggregate",
+    "nodes": [
+     "Aggregate",
+     "Hash Join",
+     "Index Only Scan using idx_orders_customer",
+     "Hash",
+     "Seq Scan"
+    ],
+    "shared_hit": 384,
+    "shared_read": 0
+   },
+   "speedup": 1.34,
+   "index_build_ms": 52.4,
+   "index_bytes": 1859584
+  }
+ ]
+}

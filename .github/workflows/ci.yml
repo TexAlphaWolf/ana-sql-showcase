@@ -1,0 +1,106 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: test (Python ${{ matrix.python-version }}, PostgreSQL 18)
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U test -d test" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      SQLSHOW_TEST_DSN: postgresql://test:test@localhost:5432/test
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - run: ruff check .
+      - run: ruff format --check .
+      - run: mypy
+      - run: pytest --cov
+
+  postgres-versions:
+    # the same tests against the other supported majors and a second, larger dataset
+    name: PostgreSQL ${{ matrix.postgres }} (scale ${{ matrix.scale }}, seed ${{ matrix.seed }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - {postgres: "16", scale: "0.02", seed: "7"}
+          - {postgres: "17", scale: "0.02", seed: "7"}
+          - {postgres: "18", scale: "0.1", seed: "11"}
+    services:
+      postgres:
+        image: postgres:${{ matrix.postgres }}
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U test -d test" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      SQLSHOW_TEST_DSN: postgresql://test:test@localhost:5432/test
+      SQLSHOW_TEST_SCALE: ${{ matrix.scale }}
+      SQLSHOW_TEST_SEED: ${{ matrix.seed }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - run: pytest
+
+  no-database:
+    # without a database the generator, the report and the CLI errors are tested; the SQL tests are skipped
+    name: test without a database (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+      - run: pip install -e ".[dev]"
+      - run: pytest
+
+  docker:
+    name: docker compose
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - name: PostgreSQL and sqlshow, every command (read-only root, no capabilities)
+        run: bash tools/docker_e2e.sh
+
+  docker-windows:
+    # the same flow driven from PowerShell, to keep that script honest (Linux containers on the runner)
+    name: docker flow from PowerShell
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - name: PowerShell script
+        shell: pwsh
+        run: ./tools/docker_e2e.ps1

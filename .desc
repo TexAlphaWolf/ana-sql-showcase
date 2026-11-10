@@ -1,0 +1,1 @@
+PostgreSQL analytics showcase - 13 commented queries checked against Python, and 10 index experiments measured with EXPLAIN ANALYZE.

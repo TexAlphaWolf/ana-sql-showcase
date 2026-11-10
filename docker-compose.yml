@@ -1,0 +1,54 @@
+# PostgreSQL and sqlshow, for measuring on your own computer. The database is not published on any port and its
+# data lives in an anonymous volume that `docker compose down -v` removes.
+#
+#   docker compose up -d --wait db
+#   docker compose run --rm sqlshow init --scale 1
+#   docker compose run --rm sqlshow evaluate --out /out
+#
+# The password below is for this throwaway database only; set SQLSHOW_PASSWORD to use another one.
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: sqlshow
+      POSTGRES_PASSWORD: ${SQLSHOW_PASSWORD:-sqlshow-demo}
+      POSTGRES_DB: sqlshow
+    # A modest, ordinary configuration for a machine with a few GB of memory and an SSD. The report records these
+    # settings, because plans and timings depend on them.
+    command:
+      - postgres
+      - -c
+      - shared_buffers=512MB
+      - -c
+      - effective_cache_size=2GB
+      - -c
+      - random_page_cost=1.1
+    shm_size: 1gb
+    security_opt:
+      - no-new-privileges:true
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sqlshow -d sqlshow"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+  sqlshow:
+    build: .
+    image: sqlshow
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      SQLSHOW_DSN: postgresql://sqlshow:${SQLSHOW_PASSWORD:-sqlshow-demo}@db:5432/sqlshow
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    volumes:
+      - out:/out
+
+volumes:
+  out:
