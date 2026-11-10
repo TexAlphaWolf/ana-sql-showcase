@@ -44,6 +44,7 @@ jobs:
     name: PostgreSQL ${{ matrix.postgres }} (scale ${{ matrix.scale }}, seed ${{ matrix.seed }})
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         include:
           - {postgres: "16", scale: "0.02", seed: "7"}

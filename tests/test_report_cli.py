@@ -10,6 +10,7 @@ import pytest
 from sqlshow import cli, db, queries, report
 from sqlshow.datagen import Dataset
 from sqlshow.evaluate import evaluate
+from tests import conftest
 
 
 def fake_report() -> dict[str, Any]:
@@ -136,7 +137,7 @@ def test_run_bench_and_evaluate_end_to_end(
     assert cli.main(["evaluate", "--dsn", dsn, "--repeat", "1", "--out", str(tmp_path / "out")]) == 0
     result = json.loads((tmp_path / "out" / "report.json").read_text(encoding="utf-8"))
     assert [q["id"] for q in result["queries"]] == [q.id for q in queries.load_queries()]
-    assert len(result["experiments"]) == 10 and result["environment"]["scale"] == 0.02
+    assert len(result["experiments"]) == 10 and result["environment"]["scale"] == conftest.SCALE
     assert (tmp_path / "out" / "summary.png").exists()
     md = (tmp_path / "out" / "evaluation.md").read_text(encoding="utf-8")
     assert md == report.render_markdown(result)

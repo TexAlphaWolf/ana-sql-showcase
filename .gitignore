@@ -25,3 +25,4 @@ sqlshow-out/
 
 # outputs of local runs (the published ones are in docs/)
 results*/
+fail*.txt
